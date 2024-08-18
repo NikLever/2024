@@ -1,4 +1,5 @@
 import { VRButton } from './VRButton.js';
+import { Proxy } from './proxy.js';
 
 class App{
 
@@ -12,19 +13,17 @@ class App{
         
 		this.camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 200 );
 
-		this.camera.position.set( 5.3, 10.5, 20 );
-        this.camera.quaternion.set( -0.231, 0.126, 0.03, 0.964);
+		this.camera.position.set( 0, 1.3, 0 );
         
 		this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color( 0x050505 );
-
+    
 		this.scene.add( new THREE.HemisphereLight( 0xffffff, 0x404040, 1.5) );
 			
 		this.renderer = new THREE.WebGLRenderer({ antialias: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 
-       const light = new THREE.DirectionalLight(0xFFFFFF, 2);
+       const light = new THREE.DirectionalLight(0xFFFFFF, 3);
        light.position.set(1,3,3);
        this.scene.add(light);
         
@@ -33,18 +32,7 @@ class App{
         this.initScene();
 
         this.tmpVec = new THREE.Vector3();
-        this.tmpEuler = new THREE.Euler();
-        this.tmpMat4 = new THREE.Matrix4();
         this.raycaster = new THREE.Raycaster();
-
-        this.force = new THREE.Vector3();
-        this.speed = 3;
-        //this.sfxInit = true;
-        //this.useHeadsetOrientation = false;
-
-        if (debug){
-            this.debugControls = new DebugControls(this );
-        }
 
         //this.setupVR();
         
@@ -54,16 +42,16 @@ class App{
 	}	
 
     startGame(){
-        this.state = App.STATES.PLAYING;
+        //this.state = App.STATES.PLAYING;
         this.gameTime = 0;
         this.startTime = this.clock.elapsedTime;
         const panel = document.getElementById('openingPanel');
         panel.style.display = 'none';
-        this.sfx.ball.play();
+       // this.sfx.ball.play();
     }
 
     gameOver(options){
-        if (options){
+        /*if (options){
             const panel = document.getElementById('gameoverPanel');
             const details = document.getElementById('details');
             switch( options.state ){
@@ -78,7 +66,7 @@ class App{
             panel.style.display = 'block';
         }
        
-        this.vrButton.endSession();
+        this.vrButton.endSession();*/
     }
 
     random( min, max ){
@@ -86,9 +74,10 @@ class App{
     }
     
     initScene(){
+        this.proxy = new Proxy( this.scene );
 
-		this.scene.background = new THREE.Color( 0x0a0a0a );
-		this.scene.fog = new THREE.Fog( 0x0a0a0a, 50, 100 );
+		this.scene.background = new THREE.Color( 0x666666 );
+		this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
     } 
     
     loadSound( snd, listener, vol=0.5, loop=false ){
@@ -151,12 +140,6 @@ class App{
         this.renderer.xr.addEventListener( 'sessionstart', function ( event ) {
             scope.startGame();
         } );
-        
-
-        this.dolly = new THREE.Group();
-        this.root = new THREE.Group();
-        this.root.position.y = -3.4;
-        this.dolly.add( this.root );
 
         this.controllers = [];
 
@@ -222,7 +205,7 @@ class App{
         if (this.renderer.xr.isPresenting){
             this.gameTime += dt;
         }else{
-            
+
         }
        
         this.renderer.render( this.scene, this.camera );
