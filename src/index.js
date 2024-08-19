@@ -1,7 +1,9 @@
 import { VRButton } from './VRButton.js';
 import { Proxy } from './proxy.js';
+import { Ball } from './ball.js';
 
 class App{
+    static states = { INTRO: 1, GAME: 2, OVER: 3 }
 
 	constructor(){
         const debug = false;
@@ -34,7 +36,7 @@ class App{
         this.tmpVec = new THREE.Vector3();
         this.raycaster = new THREE.Raycaster();
 
-        //this.setupVR();
+        this.setupVR();
         
         window.addEventListener('resize', this.resize.bind(this) );
 
@@ -42,35 +44,46 @@ class App{
 	}	
 
     startGame(){
-        //this.state = App.STATES.PLAYING;
+        this.state = App.states.GAME;
         this.gameTime = 0;
+        this.ballTime = 2.5;
+        this.ballCount = 0;
         this.startTime = this.clock.elapsedTime;
+        this.newBallTime = 3;
+        this.balls = [];
         const panel = document.getElementById('openingPanel');
         panel.style.display = 'none';
        // this.sfx.ball.play();
     }
 
-    gameOver(options){
-        /*if (options){
-            const panel = document.getElementById('gameoverPanel');
-            const details = document.getElementById('details');
-            switch( options.state ){
-                case App.STATES.DEAD:
-                    details.innerHTML = `<P>You ran out of life ${this.player.position.distanceTo(this.grail.position).toFixed(0)} metres away from the Holy Grail</p>`
-                    break;
-                case App.STATES.COMPLETE:
-                    const tm = this.clock.elapsedTime - this.startTime;
-                    details.innerHTML = `<p>Congratulations</p><p>You found the grail in ${tm.toFixed(2)} seconds</p><p>Can you do better</p>`;
-                    break;
-            }
-            panel.style.display = 'block';
+    gameOver(dead = true){
+        const panel = document.getElementById('gameoverPanel');
+        const details = document.getElementById('details');
+
+        if (dead){
+            details.innerHTML = `<P>You let a Ball 13 get passed you.</p>`
+        }else{
+            
         }
-       
-        this.vrButton.endSession();*/
+        panel.style.display = 'block';
+
+        let count = 0;
+
+        while( this.balls.length > 0 ){
+            count++;
+            if (count>1000) break;
+            this.removeBall( this.balls[0] );
+        }
+
+        this.vrButton.endSession();
+
+        this.state = App.states.OVER;
     }
 
-    random( min, max ){
-        return Math.random() * (max-min) + min;
+    random( min, max, int = false ){
+        let value = Math.random() * (max-min) + min;
+        if (int) value = Math.floor( value );
+        return value;
     }
     
     initScene(){
@@ -112,15 +125,15 @@ class App{
         this.vrButton = button;
 
         button.onClick = () => {
-            this.sfx.ball.play();
+            //this.sfx.ball.play();
         }
         
         function onSelectStart() {
-            scope.knight.playAnim('drawaction');    
+            //scope.knight.playAnim('drawaction');    
         }
 
         function onSelectEnd() {
-            scope.knight.stopAnims();    
+           // scope.knight.stopAnims();    
         }
 
         function onSqueezeStart() {
@@ -150,23 +163,23 @@ class App{
             controller.addEventListener( 'squeezestart', onSqueezeStart );
             controller.addEventListener( 'squeezeend', onSqueezeEnd );
             controller.addEventListener( 'connected', ( event ) => {
-                const mesh = this.buildController(event.data, i);
+                /*const mesh = this.buildController(event.data, i);
                 mesh.scale.z = 0;
                 controller.add( mesh );
                 controller.gamepad = event.data.gamepad;
-                controller.handedness = event.data.handedness;
+                controller.handedness = event.data.handedness;*/
                 //console.log(`controller connected ${controller.handedness}`);
             } );
             
             controller.addEventListener( 'disconnected', function () {
-                const grip = this.children[0];
+                /*const grip = this.children[0];
                 if (grip && grip.children && grip.children.length>0){
                     if (grip.children[0].isMesh) grip.children[0].geometry.dispose();
                     this.remove( grip );
-                }
+                }*/
             } );
 
-            this.root.add( controller );
+            //this.root.add( controller );
 
             /*const grip = this.renderer.xr.getControllerGrip( i );
             grip.add( this.buildGrip( ) );
@@ -199,13 +212,65 @@ class App{
         }
     }
 
+    removeBall( ball ){
+        const index = this.balls.indexOf( ball );
+        if (index != -1){
+            ball.mesh.material.map.dispose();
+            this.scene.remove( ball.mesh );
+            this.balls.splice( index, 1 );
+            if (ball.num == 13) this.gameOver();
+        }
+    }
+
+    newBall(){
+        this.ballTime = 0;
+        this.ballCount++;
+
+        const speed = Math.min(0.05 + 0.01 * this.ballCount, 0.3);
+        let xPos = 1;
+
+        if ( this.ballCount > 50 ){
+            const r1 = Math.random();
+            if (r1>0.7){
+                xPos += 4;
+            }else if (r1>0.3){
+                xPos += 2;
+            }
+        }else if (this.ballCount > 10){
+            if (Math.random()>0.5) xPos += 2;
+        }
+
+        if (Math.random()>0.5) xPos *= -1;
+
+
+        if (this.newBallTime>0.8) this.newBallTime -= 0.05;
+        const rand = Math.random();
+
+        let num;
+        const minus = Math.random() > 0.7;
+        const scores = [ 10, 25, 50, 100, 250, 500 ];
+
+        if ( rand > 0.9){
+            num = 13;
+        }else{
+            num = scores[ this.random( 0, scores.length, true ) ];
+        }
+
+        return new Ball( this.scene, num, minus, xPos, speed )
+    }
+
 	render( time, frame ) {  
         const dt = this.clock.getDelta();
 
-        if (this.renderer.xr.isPresenting){
+        if ( this.state == App.states.GAME ){
             this.gameTime += dt;
-        }else{
-
+            this.ballTime += dt;
+            if (this.ballTime > this.newBallTime){
+                this.balls.push( this.newBall() );
+            }
+            if ( this.balls && this.balls.length > 0 ){
+                this.balls.forEach( ball => ball.update( this ) );
+            }
         }
        
         this.renderer.render( this.scene, this.camera );
