@@ -1,6 +1,8 @@
 import { VRButton } from './VRButton.js';
 import { Proxy } from './proxy.js';
 import { Ball } from './ball.js';
+import { Gun } from './gun.js';
+import { Bullet } from './bullet.js';
 
 class App{
     static states = { INTRO: 1, GAME: 2, OVER: 3 }
@@ -51,6 +53,8 @@ class App{
         this.startTime = this.clock.elapsedTime;
         this.newBallTime = 3;
         this.balls = [];
+        this.bullets = [];
+        this.score = 0;
         const panel = document.getElementById('openingPanel');
         panel.style.display = 'none';
        // this.sfx.ball.play();
@@ -73,6 +77,13 @@ class App{
             count++;
             if (count>1000) break;
             this.removeBall( this.balls[0] );
+        }
+
+        count = 0;
+        while( this.bullets.length > 0 ){
+            count++;
+            if (count>1000) break;
+            this.removeBullet( this.bullets[0] );
         }
 
         this.vrButton.endSession();
@@ -124,27 +135,22 @@ class App{
         const button = new VRButton( this.renderer );
         this.vrButton = button;
 
+        const scope = this;
+
         button.onClick = () => {
             //this.sfx.ball.play();
         }
         
-        function onSelectStart() {
-            //scope.knight.playAnim('drawaction');    
+        function onSelect() {
+            console.log(`BulletTime:${this.userData.bulletTime.toFixed(2)}`);
+            if (this.userData.bulletTime > 0.25 ){
+                this.userData.bulletTime = 0;
+                scope.bullets.push( new Bullet( scope, this ) );
+            }   
         }
 
-        function onSelectEnd() {
-           // scope.knight.stopAnims();    
+        function onSqueeze() { 
         }
-
-        function onSqueezeStart() {
-            //scope.knight.playAnim('switchaction');  
-        }
-
-        function onSqueezeEnd() {
-            //scope.knight.stopAnims();    
-        }
-
-        const scope = this;
 
         this.renderer.xr.addEventListener( 'sessionend', function ( event ) {
             scope.resetGame();
@@ -158,49 +164,22 @@ class App{
 
         for (let i=0; i<=1; i++){
             const controller = this.renderer.xr.getController( i );
-            controller.addEventListener( 'selectstart', onSelectStart );
-            controller.addEventListener( 'selectend', onSelectEnd );
-            controller.addEventListener( 'squeezestart', onSqueezeStart );
-            controller.addEventListener( 'squeezeend', onSqueezeEnd );
+            this.scene.add( controller );
+
+            controller.addEventListener( 'select', onSelect );
+            controller.addEventListener( 'squeeze', onSqueeze );
             controller.addEventListener( 'connected', ( event ) => {
-                /*const mesh = this.buildController(event.data, i);
-                mesh.scale.z = 0;
-                controller.add( mesh );
-                controller.gamepad = event.data.gamepad;
-                controller.handedness = event.data.handedness;*/
-                //console.log(`controller connected ${controller.handedness}`);
+                event.target.add( new Gun() );
+                event.target.handedness = event.data.handedness;
+                event.target.userData.bulletTime = 0.5;
+                this.controllers.push( event.target );   
             } );
             
             controller.addEventListener( 'disconnected', function () {
-                /*const grip = this.children[0];
-                if (grip && grip.children && grip.children.length>0){
-                    if (grip.children[0].isMesh) grip.children[0].geometry.dispose();
-                    this.remove( grip );
-                }*/
+                
             } );
 
-            //this.root.add( controller );
-
-            /*const grip = this.renderer.xr.getControllerGrip( i );
-            grip.add( this.buildGrip( ) );
-            controller.add( grip );*/
-
-            this.controllers.push({controller});// grip});
         }
-
-    }
-    
-    /*buildGrip(){
-        const geometry = new THREE.CylinderGeometry(0.02, 0.015, 0.12, 16, 1);
-        geometry.rotateX( -Math.PI/2 );
-        const material = new THREE.MeshStandardMaterial( { color: 0xdddddd, roughness: 1 } );
-        return new THREE.Mesh(geometry, material);
-    }*/
-
-    buildController( data ) {
-        let geometry, material;
-        
-        
 
     }
     
@@ -212,13 +191,27 @@ class App{
         }
     }
 
+    updateScore( num ){
+        this.score += num;
+        if (this.score < 0) this.score = 0;
+        console.log(`Update score ${num} ${this.score}`);
+    }
+
     removeBall( ball ){
         const index = this.balls.indexOf( ball );
         if (index != -1){
             ball.mesh.material.map.dispose();
-            this.scene.remove( ball.mesh );
+            this.scene.remove( ball.group );
             this.balls.splice( index, 1 );
-            if (ball.num == 13) this.gameOver();
+            //if (ball.num == 13) this.gameOver();
+        }
+    }
+
+    removeBullet( bullet ){
+        const index = this.bullets.indexOf( bullet );
+        if (index != -1){
+            this.scene.remove( bullet.mesh );
+            this.bullets.splice( index, 1 );
         }
     }
 
@@ -269,7 +262,15 @@ class App{
                 this.balls.push( this.newBall() );
             }
             if ( this.balls && this.balls.length > 0 ){
-                this.balls.forEach( ball => ball.update( this ) );
+                this.balls.forEach( ball => ball.update( this, dt ) );
+            }
+            this.controllers.forEach( controller => {
+                if ( controller && controller.userData && controller.userData.bulletTime!=undefined){
+                    controller.userData.bulletTime += dt;
+                }
+            });
+            if (this.bullets && this.bullets.length > 0){
+                this.bullets.forEach( bullet => bullet.update( dt ) );
             }
         }
        
