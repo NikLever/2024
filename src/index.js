@@ -3,6 +3,8 @@ import { Proxy } from './proxy.js';
 import { Ball } from './ball.js';
 import { Gun } from './gun.js';
 import { Bullet } from './bullet.js';
+import { Counter } from './counter.js';
+import { SFX } from './sfx.js';
 
 class App{
     static states = { INTRO: 1, GAME: 2, OVER: 3 }
@@ -39,6 +41,8 @@ class App{
         this.raycaster = new THREE.Raycaster();
 
         this.setupVR();
+
+        this.SFX = new SFX();
         
         window.addEventListener('resize', this.resize.bind(this) );
 
@@ -55,19 +59,22 @@ class App{
         this.balls = [];
         this.bullets = [];
         this.score = 0;
+        this.timerTime = 0;
+        this.timeCounter.seconds = 0;
         const panel = document.getElementById('openingPanel');
         panel.style.display = 'none';
-       // this.sfx.ball.play();
+        this.SFX.heart();
     }
 
     gameOver(dead = true){
         const panel = document.getElementById('gameoverPanel');
         const details = document.getElementById('details');
 
+
         if (dead){
-            details.innerHTML = `<P>You let a Ball 13 get passed you.</p>`
+            details.innerHTML = `<P>You let a Ball 13 get passed you.</p><P>Score: ${this.score}</P><P>Time: ${this.timeCounter.time}</P>`;
         }else{
-            
+            details.innerHTML = `<P>You quit the game</P><P>Score: ${this.score}</P><P>Time: ${this.timeCounter.time}</P>`;
         }
         panel.style.display = 'block';
 
@@ -86,9 +93,11 @@ class App{
             this.removeBullet( this.bullets[0] );
         }
 
-        this.vrButton.endSession();
-
         this.state = App.states.OVER;
+
+        this.SFX.gameOver();
+
+        if (dead) this.vrButton.endSession();
     }
 
     random( min, max, int = false ){
@@ -99,6 +108,9 @@ class App{
     
     initScene(){
         this.proxy = new Proxy( this.scene );
+
+        this.scoreCounter = new Counter( this.scene, new THREE.Vector3( -3, 4.5, -19.8 ) );
+        this.timeCounter = new Counter( this.scene, new THREE.Vector3( 3.9, 4.5, -19.8 ) );
 
 		this.scene.background = new THREE.Color( 0x666666 );
 		this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
@@ -126,7 +138,7 @@ class App{
     }
 
     resetGame(){
-        
+        this.gameOver( false );
     }
 
     setupVR(){
@@ -146,6 +158,7 @@ class App{
             if (this.userData.bulletTime > 0.25 ){
                 this.userData.bulletTime = 0;
                 scope.bullets.push( new Bullet( scope, this ) );
+                scope.SFX.shoot( 0.1 );
             }   
         }
 
@@ -194,16 +207,17 @@ class App{
     updateScore( num ){
         this.score += num;
         if (this.score < 0) this.score = 0;
+        this.scoreCounter.score = this.score;
         console.log(`Update score ${num} ${this.score}`);
     }
 
-    removeBall( ball ){
+    removeBall( ball, gameOver = false ){
         const index = this.balls.indexOf( ball );
         if (index != -1){
             ball.mesh.material.map.dispose();
             this.scene.remove( ball.group );
             this.balls.splice( index, 1 );
-            //if (ball.num == 13) this.gameOver();
+            if (gameOver) this.gameOver( true );
         }
     }
 
@@ -233,21 +247,22 @@ class App{
             if (Math.random()>0.5) xPos += 2;
         }
 
-        if (Math.random()>0.5) xPos *= -1;
-
-
-        if (this.newBallTime>0.8) this.newBallTime -= 0.05;
+        if (this.newBallTime>0.6) this.newBallTime -= 0.05;
         const rand = Math.random();
 
         let num;
         const minus = Math.random() > 0.7;
-        const scores = [ 10, 25, 50, 100, 250, 500 ];
+        const scores = [ 10, 50, 250 ];
+        const leftSide = Math.random()>0.5;
 
-        if ( rand > 0.9){
+        if ( rand > 0.9 && xPos < 3){
             num = 13;
         }else{
-            num = scores[ this.random( 0, scores.length, true ) ];
+            let index = (xPos-1)/2;
+            num = scores[ index ];
         }
+
+        if (leftSide) xPos *= -1;
 
         return new Ball( this.scene, num, minus, xPos, speed )
     }
@@ -258,20 +273,31 @@ class App{
         if ( this.state == App.states.GAME ){
             this.gameTime += dt;
             this.ballTime += dt;
+            this.timerTime += dt;
+            if ( this.timerTime > 1){
+                this.timerTime -= 1;
+                this.timeCounter.seconds = Math.floor( this.gameTime );
+            }
+
             if (this.ballTime > this.newBallTime){
                 this.balls.push( this.newBall() );
             }
+
             if ( this.balls && this.balls.length > 0 ){
                 this.balls.forEach( ball => ball.update( this, dt ) );
             }
+
             this.controllers.forEach( controller => {
                 if ( controller && controller.userData && controller.userData.bulletTime!=undefined){
                     controller.userData.bulletTime += dt;
                 }
             });
+
             if (this.bullets && this.bullets.length > 0){
                 this.bullets.forEach( bullet => bullet.update( dt ) );
             }
+
+            this.scoreCounter.update( dt );
         }
        
         this.renderer.render( this.scene, this.camera );

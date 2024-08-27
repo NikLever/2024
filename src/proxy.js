@@ -20,14 +20,14 @@ export class Proxy{
         floor.position.set( 0, 0, -12.5 );
         //scene.add( floor );
 
-        const geo3 = new THREE.BoxGeometry( 15, 0.6, 0.6 );
+        const geo3 = new THREE.BoxGeometry( 15, 5, 0.6 );
         const lintel = new THREE.Mesh( geo3, mat1 );
-        lintel.position.set( 0, 3.3, -20 );
+        lintel.position.set( 0, 5.5, -20 );
         scene.add( lintel );
 
-        const geo4 = new THREE.BoxGeometry( 15, 3.3, 36 );
+        const geo4 = new THREE.BoxGeometry( 15, 5.3, 36 );
         const room = new THREE.Mesh( geo4, mat2 );
-        room.position.set( 0, 1.65, -10 );
+        room.position.set( 0, 2.65, -10 );
         scene.add( room );
     }
 }

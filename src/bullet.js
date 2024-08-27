@@ -22,7 +22,7 @@ export class Bullet{
     }
 
     update( dt ){
-        let dist = dt * 2;
+        let dist = dt * 15;
         let count = 0;
 
         while(count<1000){

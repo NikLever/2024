@@ -53,6 +53,7 @@ export class Ball{
         console.log( "Ball hit" );
         this.game = game;
         game.updateScore( this.num );
+        game.SFX.hit();
 
         this.scene.remove( this.mesh );
         this.state = Ball.states.HIT;
@@ -90,7 +91,6 @@ export class Ball{
                 break;
             case Ball.states.ROTATE:
                 this.mesh.rotateY( -0.1 );
-                //console.log( this.mesh.rotation.y );
                 if (this.mesh.rotation.y < -Math.PI/2.1){
                     this.state = Ball.states.FIRED;
                 }
@@ -105,7 +105,7 @@ export class Ball{
 
         if (this.mesh.position.z > 2){
             this.mesh.material.map.dispose();
-            if (game) game.removeBall( this );
+            if (game) game.removeBall( this, this.num==13 );
         }
     }
 }
@@ -116,7 +116,7 @@ class Particle extends THREE.Mesh{
     constructor( ball ){
         super( Particle.geometry, new THREE.MeshStandardMaterial( { color: ball.color }) );
 
-        this.dir = new THREE.Vector3( ball.game.random( 0, Math.PI*2 ), ball.game.random( 0, Math.PI*2 ), ball.game.random( 0, Math.PI*2 ) );
+        this.dir = new THREE.Vector3( ball.game.random( -1, 1 ), ball.game.random( -1, 1 ), ball.game.random( -1, 1 ) );
         this.dir.normalize();
         this.position.copy( this.dir ).multiplyScalar( 0.45 );
 
