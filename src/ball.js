@@ -39,6 +39,7 @@ export class Ball{
         const material = new THREE.MeshStandardMaterial( { map: tex, roughness: 0.1 } );
 
         this.mesh = new THREE.Mesh( Ball.geometry, material );
+        this.mesh.castShadow = true;
         this.mesh.position.set( xPos, 4, -20 );
         this.mesh.rotateY( Math.PI/2 );
 

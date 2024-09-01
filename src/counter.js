@@ -1,3 +1,6 @@
+import { MouldGeometry } from "./MouldGeometry.js";
+import { App } from './index.js';
+
 export class Counter extends THREE.Group{
     static texture;
     static types = { SCORE: 0, TIMER: 1 };
@@ -62,6 +65,14 @@ export class Counter extends THREE.Group{
             mesh.position.set( xPos + inc*i, 0, zPos );
             this.add( mesh );
         }
+
+        const width = inc * 5 + 0.6;
+        const geo1 = new MouldGeometry( 0.15, 0.1, width, 0.2 );
+        geo1.translate(0, 0, -width/2 + 0.3 );
+        const mesh1 = new THREE.Mesh( geo1, App.darkWoodMat );
+        mesh1.rotateY( -Math.PI/2 );
+        mesh1.position.y = -0.5;
+        this.add( mesh1 );
 
         this.type = Counter.types.SCORE;
 

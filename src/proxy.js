@@ -28,6 +28,6 @@ export class Proxy{
         const geo4 = new THREE.BoxGeometry( 15, 5.3, 36 );
         const room = new THREE.Mesh( geo4, mat2 );
         room.position.set( 0, 2.65, -10 );
-        scene.add( room );
+        //scene.add( room );
     }
 }

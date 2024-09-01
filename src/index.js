@@ -1,15 +1,25 @@
 import { VRButton } from './VRButton.js';
-import { Proxy } from './proxy.js';
+//import { Proxy } from './proxy.js';
 import { Ball } from './ball.js';
 import { Gun } from './gun.js';
 import { Bullet } from './bullet.js';
 import { Counter } from './counter.js';
 import { SFX } from './sfx.js';
+//import { Test } from './test.js';
+import { NoiseMaterial } from './NoiseMaterial.js';
+import { Panelling } from './panelling.js';
+import { Ceiling } from './ceiling.js';
+import { MouldGeometry } from './MouldGeometry.js';
 
 class App{
     static states = { INTRO: 1, GAME: 2, OVER: 3 }
-
-	constructor(){
+    static woodMat = new NoiseMaterial( 'wood', { roughness: 0.3 } );
+    static darkWoodMat = new NoiseMaterial( 'darkwood', { roughness: 0.3 } ); 
+    static darkMetalMat = new THREE.MeshStandardMaterial( { color: 0x707070, metalness: 1, roughness: 0.3 } );
+    static metalMat = new THREE.MeshStandardMaterial( { color: 0x999999, metalness: 1, roughness: 0.3 } );
+	static brassMat = new THREE.MeshStandardMaterial( { color: 0xffAA11, metalness: 1, roughness: 0.1 } );
+        
+    constructor(){
         const debug = false;
 
 		const container = document.createElement( 'div' );
@@ -28,10 +38,21 @@ class App{
 		this.renderer = new THREE.WebGLRenderer({ antialias: true } );
 		this.renderer.setPixelRatio( window.devicePixelRatio );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
+        this.renderer.shadowMap.enabled = true;
 
-       const light = new THREE.DirectionalLight(0xFFFFFF, 3);
-       light.position.set(1,3,3);
-       this.scene.add(light);
+        const light = new THREE.DirectionalLight(0xFFFFFF, 3);
+        light.castShadow = true;
+        light.shadow.mapSize.width = 512; // default
+        light.shadow.mapSize.height = 512; // default
+        light.shadow.camera.near = 0.5; // default
+        light.shadow.camera.far = 500; // default
+        const size = 15;
+        light.shadow.camera.top = size;
+        light.shadow.camera.right = size;
+        light.shadow.camera.bottom = -size;
+        light.shadow.camera.left = -size;
+        light.position.set(1,3,3);
+        this.scene.add(light);
         
 		container.appendChild( this.renderer.domElement );
         
@@ -107,13 +128,91 @@ class App{
     }
     
     initScene(){
-        this.proxy = new Proxy( this.scene );
+        //this.proxy = new Proxy( this.scene );
+
+        const woodMat = App.woodMat;
+
+        const geo1 = new THREE.PlaneGeometry( 15, 30 );
+        geo1.rotateX( -Math.PI/2 );
+        const floor = new THREE.Mesh( geo1, woodMat );
+        floor.receiveShadow = true;
+        floor.position.set( 0, 0.01, -15 );
+        this.scene.add( floor );
+
+        const panellingLeft = new Panelling();
+        panellingLeft.rotateY( Math.PI/2 );
+        panellingLeft.position.set( -7, 3.15, -10 );
+        this.scene.add( panellingLeft );
+        const panellingRight = panellingLeft.clone();
+        panellingRight.rotateY( Math.PI );
+        panellingRight.position.x = 7;
+        this.scene.add( panellingRight );
+
+        const ceiling = new Ceiling();
+        ceiling.position.y = 6.3;
+        this.scene.add( ceiling );
+
+        const geo2 = new THREE.CylinderGeometry( 0.25, 0.25, 3 );
+        const brassMat = App.brassMat;
+        const metalMat = App.metalMat;
+
+        const column = new THREE.Mesh( geo2, brassMat );
+        column.castShadow = true;
+
+        const shape = new THREE.Shape();
+        const w = 0.2;
+        const h = 0.15;
+        shape.moveTo( w/2, 0 );
+        shape.lineTo( w/2, h*0.3 );
+        shape.lineTo( w*0.2, h );
+        shape.lineTo( w*0.1, h );
+        shape.lineTo( w*0.1, h/2);
+        shape.lineTo( -w*0.1, h/2);
+        shape.lineTo( -w*0.1, h );
+        shape.lineTo( -w*0.2, h );
+        shape.lineTo( -w/2, h*0.3 );
+        shape.lineTo( -w/2, 0 );
+        shape.lineTo( w/2, 0 );
+        const geo4 = new THREE.ExtrudeGeometry( shape, { depth: 30, steps: 1, bevelEnabled: false } );
+        geo4.translate( 0, 0, -30 );
+        const channel = new THREE.Mesh( geo4, metalMat );
+        //channel.castShadow = true;
+        //channel.position.y = 1;
+        
+        for ( let x = -6; x<=6; x+=2 ){
+            const columnA = column.clone();
+            columnA.position.set( x, 1.5, -20);
+            this.scene.add( columnA );
+            if (x<6){
+                const channelA = channel.clone();
+                channelA.position.x = x+1;
+                this.scene.add( channelA );
+            }
+        }
+
+        const geo3 = new THREE.BoxGeometry( 0.6, 5, 15 );
+        const lintel = new THREE.Mesh( geo3, woodMat );
+        //lintel.rotateZ( Math.PI/2 );
+        //lintel.rotateZ( Math.PI/2 );
+        lintel.rotateY( Math.PI/2 );
+        lintel.position.set( 0, 5.5, -20 ); 
+        this.scene.add( lintel );
+
+        const geo5 = new MouldGeometry( 0.1, 0.2, 15 );
+        geo5.translate( 0, 0, -7.5 );
+        const trim = new THREE.Mesh( geo5, woodMat );
+        trim.rotateY( -Math.PI/2 );
+        trim.position.set( 0, 3, -19.5 ); 
+        this.scene.add( trim );
+        //this.test = trim;
 
         this.scoreCounter = new Counter( this.scene, new THREE.Vector3( -3, 4.5, -19.8 ) );
         this.timeCounter = new Counter( this.scene, new THREE.Vector3( 3.9, 4.5, -19.8 ) );
 
 		this.scene.background = new THREE.Color( 0x666666 );
 		this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
+
+        delete this.envMap;
     } 
     
     loadSound( snd, listener, vol=0.5, loop=false ){
@@ -216,6 +315,7 @@ class App{
         if (index != -1){
             ball.mesh.material.map.dispose();
             this.scene.remove( ball.group );
+            this.scene.remove( ball.mesh );
             this.balls.splice( index, 1 );
             if (gameOver) this.gameOver( true );
         }
@@ -267,6 +367,19 @@ class App{
         return new Ball( this.scene, num, minus, xPos, speed )
     }
 
+    capture(){
+        const cav = this.renderer.domElement;
+        const base64 = cav.toDataURL('img/png');
+        this.envMap = new THREE.Texture( base64 );
+        this.scene.environment = this.envMap;
+
+        const geo = new THREE.PlaneGeometry();
+        const mat = new THREE.MeshBasicMaterial( { map: this.envMap } );
+        const mesh = new THREE.Mesh( geo, mat );
+        mesh.position.set( -1, 1, -5 );
+        this.scene.add( mesh );
+    }
+
 	render( time, frame ) {  
         const dt = this.clock.getDelta();
 
@@ -300,6 +413,28 @@ class App{
             this.scoreCounter.update( dt );
         }
        
+        if (this.scene.environment == null){
+            this.renderTarget = new THREE.WebGLRenderTarget(1024, 512);
+            this.renderer.setSize( 1024, 512 );
+            this.renderer.setRenderTarget( this.renderTarget );
+            this.renderer.render( this.scene, this.camera );
+
+            const pmremGenerator = new THREE.PMREMGenerator( this.renderer );
+            pmremGenerator.compileEquirectangularShader();
+            const envmap = pmremGenerator.fromEquirectangular( this.renderTarget.texture ).texture;
+            pmremGenerator.dispose();
+
+            this.scene.environment = envmap;
+            this.renderer.setRenderTarget( null );
+            this.resize();
+
+            //const test = new Test( this.scene  );
+            //test.position.set( 0, 1.5, -5 );
+            //this.test = test;
+        }
+
+        if ( this.test ) this.test.rotateY( dt );
+
         this.renderer.render( this.scene, this.camera );
     }
 }
