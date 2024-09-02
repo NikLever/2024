@@ -205,21 +205,21 @@ class App{
         trim.rotateY( -Math.PI/2 );
         trim.position.set( 0, 3, -19.5 ); 
         this.scene.add( trim );
-        //this.test = trim;
 
         this.scoreCounter = new Counter( this.scene, new THREE.Vector3( -3, 4.5, -19.8 ) );
         this.timeCounter = new Counter( this.scene, new THREE.Vector3( 3.9, 4.5, -19.8 ) );
         
-        //this.test = new Counter( this.scene, new THREE.Vector3( 0, 2, -6 ) );
-        //this.test.score = 100;
+       // this.test = new Gun();
+        //this.test.position.set( 0, 1.5, -0.5 );
+        //this.scene.add( this.test );
 
-		this.scene.background = new THREE.Color( 0x666666 );
-		this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
+		this.scene.background = new THREE.Color( 0x202020 );
+		//this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
 
         delete this.envMap;
     } 
     
-    loadSound( snd, listener, vol=0.5, loop=false ){
+   /* loadSound( snd, listener, vol=0.5, loop=false ){
         // create a global audio source
         const sound = new THREE.Audio( listener );
 
@@ -232,7 +232,7 @@ class App{
         });
 
         return sound;
-    }
+    }*/
 
     resize(){
         this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -241,7 +241,7 @@ class App{
     }
 
     resetGame(){
-        this.gameOver( false );
+        if ( this.state == App.states.GAME ) this.gameOver( false );
     }
 
     setupVR(){
@@ -320,6 +320,7 @@ class App{
             ball.mesh.material.map.dispose();
             this.scene.remove( ball.group );
             this.scene.remove( ball.mesh );
+            this.scene.remove( ball.support );
             this.balls.splice( index, 1 );
             if (gameOver) this.gameOver( true );
         }
@@ -431,15 +432,11 @@ class App{
             this.scene.environment = envmap;
             this.renderer.setRenderTarget( null );
             this.resize();
-
-            //const test = new Test( this.scene  );
-            //test.position.set( 0, 1.5, -5 );
-            //this.test = test;
         }
 
         if ( this.test ){
-            //this.test.rotateY( dt );
-            this.test.update();
+            this.test.rotateY( dt );
+            //this.test.update();
         }
 
         this.renderer.render( this.scene, this.camera );

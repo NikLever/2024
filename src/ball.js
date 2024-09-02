@@ -13,8 +13,10 @@ export class Ball{
         }
 
         if ( Ball.support == undefined ){
-            const geo1 = new THREE.CylinderGeometry( 0.04, 0.04, 1, 10, 1, true );
+            const geo1 = new THREE.CylinderGeometry( 0.04, 0.04, 1.5, 10, 1, true );
+            geo1.translate( 0, 0.7, 0 );
             Ball.support = new THREE.Mesh( geo1, App.darkMetalMat );
+            Ball.support.rotateX( Math.PI/2 );
         }
 
         const context = Ball.canvas.getContext('2d');
@@ -49,10 +51,11 @@ export class Ball{
 
         this.mesh = new THREE.Mesh( Ball.geometry, material );
         this.mesh.castShadow = true;
-        this.mesh.position.set( xPos, 4, -20 );
+        this.mesh.position.set( xPos, 4, -20.6 );
         this.mesh.rotateY( Math.PI/2 );
 
         this.support = Ball.support.clone();
+        this.support.position.x = xPos;
         scene.add( this.support );
 
         this.state = Ball.states.DROPPING;
@@ -101,6 +104,10 @@ export class Ball{
                     this.state = Ball.states.ROTATE;
                     this.mesh.position.y = 1.6;
                 }
+                this.support.rotation.x -= 0.1;
+                if (this.support.rotation.x<0){
+                    this.support.rotation.x = 0;
+                }
                 break;
             case Ball.states.ROTATE:
                 this.mesh.rotateY( -0.1 );
@@ -119,7 +126,9 @@ export class Ball{
 
         if (this.mesh.position.z > 2){
             this.mesh.material.map.dispose();
-            if (game) game.removeBall( this, this.num==13 );
+            if (game){
+                game.removeBall( this, this.num==13 );
+            } 
         }
     }
 }
