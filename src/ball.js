@@ -17,6 +17,7 @@ export class Ball{
             geo1.translate( 0, 0.7, 0 );
             Ball.support = new THREE.Mesh( geo1, App.darkMetalMat );
             Ball.support.rotateX( Math.PI/2 );
+            Ball.support.castShadow = true;
         }
 
         const context = Ball.canvas.getContext('2d');

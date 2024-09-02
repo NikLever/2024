@@ -184,6 +184,7 @@ export class Counter extends THREE.Group{
     set seconds(value){
         if ( this.type != Counter.types.TIMER ) this.type = Counter.types.TIMER;
         this.targetValue = value;
+        if (value==0) this.displayValue = value;
         this.update( 0 );
     }
 

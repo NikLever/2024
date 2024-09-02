@@ -6,7 +6,7 @@
     name="viewport"
     content="initial-scale=1.0,width=device-width,user-scalable=no,viewport-fit=cover,maximum-scale=1.0, user-scalable=no"
   />
-    <title>Shoot 13</title>
+    <title>Steamshot 13</title>
     <!--<script type="importmap">
     {
       "imports": {
@@ -35,34 +35,117 @@
 
       .panel{
         position: absolute;
-        width: 70%;
+        width: 50%;
         left: 50%;
         top: 50%;
         transform: translateX(-50%) translateY(-60%);
         z-index: 1000;
         border-style: solid;
-        border-color: #175230;
+        border-color: #c18d08;
         border-width: 20px;
-        background-color: rgb(212, 212, 180);
+        border-radius: 40px;
+        text-align: center;
+        background-color: rgba(244, 237, 214, 0.8);
         padding: 40px 40px;
-        color: #494b38;
-        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        font-size: large;
+        color: #593f15;
+        font-family: 'Times', serif;
+        font-size: 30px;
         display: none;
       }
+      .panel p{
+        color: #2b2926;
+      }
+      table{
+        font-family: 'Arial', san-serif;
+        width: 100%;
+      }
+      table td:first-child{
+        text-align: right;
+        width: 50%;
+        padding: 0 20px 0 20px;
+      }
+      table td{
+        text-align: left;
+        padding: 0 20px 0 20px;
+      }
+      .button {
+          font-size: 1.2em;
+          background-color: #5e4b2f; /* Bronze-like color */
+          color: #d3b784; /* Golden text */
+          border: 2px solid #a38e6f; /* Border with lighter gold */
+          padding: 10px 20px;
+          cursor: pointer;
+          text-transform: uppercase;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Button shadow */
+          transition: background-color 0.3s, box-shadow 0.3s;
+      }
+
+      .button:hover {
+          background-color: #a38e6f; /* Lighter on hover */
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.7); /* More pronounced shadow on hover */
+      }
     </style>
+    -->
+  <!--  <style>
+      body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Times New Roman', serif; /* Using default serif font */
+    background-color: #2b2a2a; /* Dark background */
+    color: #d3b784; /* Golden text color */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image: linear-gradient(135deg, #2b2a2a 25%, #3e3d3d 25%, #3e3d3d 50%, #2b2a2a 50%, #2b2a2a 75%, #3e3d3d 75%, #3e3d3d 100%);
+    background-size: 50px 50px; /* Simple checkered pattern */
+}
+
+.game-over-screen {
+    border: 5px solid #d3b784; /* Golden border */
+    padding: 50px;
+    background-color: rgba(43, 42, 42, 0.95); /* Semi-transparent dark background */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); /* Shadow for depth */
+    width: 500px;
+    text-align: center;
+}
+
+.game-over-title {
+    font-size: 4em;
+    margin: 0;
+    text-shadow: 3px 3px #5e4b2f; /* Shadow for depth */
+}
+
+.game-over-text {
+    font-size: 1.5em;
+    margin: 20px 0;
+    color: #a38e6f; /* Lighter golden color */
+}
+
+
+    </style>-->
   </head>
   <body>
-    <div id="openingPanel" class="panel" style="display: block;"> 
-      <h1>Shoot 13</h1>
+    <div id="openingPanel" class="panel" style="display: none;"> 
+      <h1>STEAMSHOT 13</h1>
       <p>Don't let a 13 ball pass. Score points with a green ball hit. Lose points if you hit a red ball. How long can you survive?</p>
       <h3>Instructions</h3>
-      <p>Shoot with the trigger</p>
-      <p>Reload with the side button</p>
+      <p>Shoot with the trigger<br>
+      Press the button below to PLAY</p>
     </div>
-    <div id="gameoverPanel" class="panel" style="display:none">
-      <h1>Gameover</h1>
-      <p id="details"></p>
+    <div id="gameoverPanel" class="panel" style="display:block">
+      <h1>GAMEOVER</h1>
+      <p id="details">
+        You let a 13 ball pass
+        <table>
+          <tr><td>Hit score</td><td>20</td></tr>
+          <tr><td>Time</td><td>01:20</td></tr>
+          <tr><td>Total Score</td><td>500</td></tr>
+        </table>
+      </p>
+      <input type="text" placeholder="Enter your name" >
+      <button class="button">LEADERBOARD</button>
     </div>
     <!--<button id="startBtn">Start</button>-->
   </body>
