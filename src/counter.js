@@ -5,7 +5,7 @@ export class Counter extends THREE.Group{
     static texture;
     static types = { SCORE: 0, TIMER: 1 };
 
-    constructor( scene, pos = new THREE.Vector3(), rot = new THREE.Euler ){
+    constructor( scene, pos = new THREE.Vector3(), rot = new THREE.Euler() ){
         super();
 
         this.scale.set( 1.5, 1.5, 1.5 );
@@ -66,18 +66,68 @@ export class Counter extends THREE.Group{
             this.add( mesh );
         }
 
-        const width = inc * 5 + 0.6;
+        this.add( this.createFrame( inc*5 + 0.4, 1, 0.2 ) );
+
+
+        /*const width = inc * 5 + 0.4;
         const geo1 = new MouldGeometry( 0.15, 0.1, width, 0.2 );
-        geo1.translate(0, 0, -width/2 + 0.3 );
-        const mesh1 = new THREE.Mesh( geo1, App.darkWoodMat );
-        mesh1.rotateY( -Math.PI/2 );
-        mesh1.position.y = -0.5;
+        geo1.translate(0.15, 0, -width/2 + 0.25 );
+        const mesh1 = new THREE.Mesh( geo1, App.oakMat );
+        mesh1.quaternion.identity();
+        mesh1.updateMatrix();
+        mesh1.rotation.set( 0, -Math.PI/2, 0 );
+        mesh1.position.y = -0.55;
         this.add( mesh1 );
+        //console.log( `mesh1.rotation = ${mesh1.rotation.x.toFixed(3)}, ${mesh1.rotation.y.toFixed(3)}, ${mesh1.rotation.z.toFixed(3)}` );
+
+        const mesh2 = mesh1.clone();
+        mesh2.rotateX( Math.PI );
+        mesh2.position.set(-0.5, 0.5, 0 );
+        this.add( mesh2 );
+
+        const height = 1;
+        const geo2 = new MouldGeometry( 0.15, 0.1, height, 0.2 );
+        geo2.translate(0.15, 0, -height/2 + 0.25 );
+        const mesh3 = new THREE.Mesh( geo2, App.oakMat );
+        mesh3.quaternion.identity();
+        mesh3.updateMatrix();
+        mesh3.rotateY( -Math.PI/2 );
+        mesh3.rotateX(  -Math.PI/2 );
+        mesh3.position.set( -width/2-0.26, -0.25, 0 );
+        this.add( mesh3 );
+
+        const mesh4 = mesh3.clone();
+        mesh4.rotateX( Math.PI );
+        mesh4.position.set(width/2-0.26, 0.25, 0 );
+        this.add( mesh4 );*/
 
         this.type = Counter.types.SCORE;
 
         this.displayValue = 0;
         this.targetValue = 0;
+    }
+
+    createFrame( width, height, inset ){
+        const shape = new THREE.Shape();
+        let w = width/2, h = height/2;
+        shape.moveTo( w, -h );
+        shape.lineTo( w, h );
+        shape.lineTo( -w, h );
+        shape.lineTo( -w, -h );
+        shape.lineTo( w, -h );
+        w -= inset; h -= inset;
+        const path = new THREE.Path();
+        path.moveTo( w, -h );
+        path.lineTo( w, h );
+        path.lineTo( -w, h );
+        path.lineTo( -w, -h );
+        path.lineTo( w, -h );
+        shape.holes.push( path );
+
+        const geometry = new THREE.ExtrudeGeometry( shape, { depth: 0.2, bevelEnabled: false } );
+        geometry.translate( -inset - 0.1, 0, 0 );
+        
+        return new THREE.Mesh( geometry, App.oakMat );
     }
 
     set score(value){
@@ -91,11 +141,16 @@ export class Counter extends THREE.Group{
         while ( str.length < 5 ) str = "0" + str;
         const arr = str.split( "" );
         
+        let index = 0;
+
         this.children.forEach( child => {
-            const num = Number(arr.shift());
-            if (!isNaN(num)){
-                child.rotation.x = -inc*num - 0.4;
+            if ( index<5 ){
+                const num = Number(arr.shift());
+                if (!isNaN(num)){
+                    child.rotation.x = -inc*num - 0.4;
+                }
             }
+            index++;
         });
     }
 
@@ -111,13 +166,18 @@ export class Counter extends THREE.Group{
         let timeStr = minsStr + ":" + secsStr;
         let arr = timeStr.split( "" );
         
+        let index = 0;
+
         this.children.forEach( child => {
-            const num = Number(arr.shift());
-            if (isNaN(num)){
-                child.rotation.x = -inc*10 - 0.4;
-            }else{
-                child.rotation.x = -inc*num - 0.4;
+            if (index<5){
+                const num = Number(arr.shift());
+                if (isNaN(num)){
+                    child.rotation.x = -inc*10 - 0.4;
+                }else{
+                    child.rotation.x = -inc*num - 0.4;
+                }
             }
+            index++;
         });
     }
 

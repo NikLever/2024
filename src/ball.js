@@ -1,13 +1,22 @@
+import { App } from './index.js';
+
 export class Ball{
     static states = { DROPPING: 1, ROTATE: 2, FIRED: 3, HIT: 4 };
     static canvas = document.createElement('canvas');
     static geometry = new THREE.SphereGeometry( 0.5 );
+    static support;
     
     constructor( scene, num, minus = false, xPos = -1, speed = 0.1 ){
         if (Ball.canvas.width != 256 ){
 		    Ball.canvas.width = 256;
             Ball.canvas.height = 128;
         }
+
+        if ( Ball.support == undefined ){
+            const geo1 = new THREE.CylinderGeometry( 0.04, 0.04, 1, 10, 1, true );
+            Ball.support = new THREE.Mesh( geo1, App.darkMetalMat );
+        }
+
         const context = Ball.canvas.getContext('2d');
 
         if (num == 13){
@@ -42,6 +51,9 @@ export class Ball{
         this.mesh.castShadow = true;
         this.mesh.position.set( xPos, 4, -20 );
         this.mesh.rotateY( Math.PI/2 );
+
+        this.support = Ball.support.clone();
+        scene.add( this.support );
 
         this.state = Ball.states.DROPPING;
 
@@ -98,6 +110,7 @@ export class Ball{
                 break;
             case Ball.states.FIRED:
                 this.mesh.position.z += this.speed * dt;
+                this.support.position.z = this.mesh.position.z;
                 break;
             case Ball.states.HIT:
                 this.particles.forEach( particle => { particle.update( this, dt ) })

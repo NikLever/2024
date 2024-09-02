@@ -5,6 +5,9 @@ export class NoiseMaterial extends THREE.MeshStandardMaterial{
 		if ( this.noise == null ) this.initNoise();
 
 		switch( type ){
+			case 'oak':
+				this.wood( 0x261308, 0x110302 );
+				break;
 			case 'darkwood':
 				this.wood( 0x563308, 0x211302 );
 				break;
@@ -64,8 +67,8 @@ export class NoiseMaterial extends THREE.MeshStandardMaterial{
 		const uniforms = {};
 		uniforms.u_time = { value: 0.0 };
 		uniforms.u_resolution = { value: new THREE.Vector2() };
-		uniforms.u_LightColor = { value: new THREE.Color(0x735735) };
-		uniforms.u_DarkColor = { value: new THREE.Color(0x3f2d17) };
+		uniforms.u_LightColor = { value: new THREE.Color(light) };
+		uniforms.u_DarkColor = { value: new THREE.Color(dark) };
 		uniforms.u_Frequency = { value: 55.0 };
 		uniforms.u_NoiseScale = { value: 2.0 };
 		uniforms.u_RingScale = { value: 0.26 };

@@ -15,6 +15,7 @@ class App{
     static states = { INTRO: 1, GAME: 2, OVER: 3 }
     static woodMat = new NoiseMaterial( 'wood', { roughness: 0.3 } );
     static darkWoodMat = new NoiseMaterial( 'darkwood', { roughness: 0.3 } ); 
+    static oakMat = new NoiseMaterial( 'oak', { roughness: 0.3 } ); 
     static darkMetalMat = new THREE.MeshStandardMaterial( { color: 0x707070, metalness: 1, roughness: 0.3 } );
     static metalMat = new THREE.MeshStandardMaterial( { color: 0x999999, metalness: 1, roughness: 0.3 } );
 	static brassMat = new THREE.MeshStandardMaterial( { color: 0xffAA11, metalness: 1, roughness: 0.1 } );
@@ -208,6 +209,9 @@ class App{
 
         this.scoreCounter = new Counter( this.scene, new THREE.Vector3( -3, 4.5, -19.8 ) );
         this.timeCounter = new Counter( this.scene, new THREE.Vector3( 3.9, 4.5, -19.8 ) );
+        
+        //this.test = new Counter( this.scene, new THREE.Vector3( 0, 2, -6 ) );
+        //this.test.score = 100;
 
 		this.scene.background = new THREE.Color( 0x666666 );
 		this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
@@ -433,7 +437,10 @@ class App{
             //this.test = test;
         }
 
-        if ( this.test ) this.test.rotateY( dt );
+        if ( this.test ){
+            //this.test.rotateY( dt );
+            this.test.update();
+        }
 
         this.renderer.render( this.scene, this.camera );
     }
