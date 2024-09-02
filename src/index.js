@@ -431,6 +431,24 @@ class App{
 
             this.scene.environment = envmap;
             this.renderer.setRenderTarget( null );
+
+            const ball = new Ball( this.scene, 13 );
+            ball.state = Ball.states.PIC;
+            ball.mesh.position.set( 0, 1.2, -1.5 );
+            ball.mesh.rotation.y = -Math.PI/2;
+
+            this.camera.aspect = 1;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize( 100, 100 );
+
+            this.renderer.render( this.scene, this.camera );
+            const elm = document.getElementById( "ballPic" );
+            elm.src = this.renderer.domElement.toDataURL( "image/png" );
+
+            ball.mesh.material.map.dispose();
+            this.scene.remove( ball.mesh );
+            this.scene.remove( ball.support );
+
             this.resize();
         }
 

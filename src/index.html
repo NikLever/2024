@@ -7,20 +7,28 @@
     content="initial-scale=1.0,width=device-width,user-scalable=no,viewport-fit=cover,maximum-scale=1.0, user-scalable=no"
   />
     <title>Steamshot 13</title>
-    <!--<script type="importmap">
-    {
-      "imports": {
-        "three": "https://js13kgames.com/webxr-src/2024/three.module.js"
-      }
-    }-->
-  </script>
   <script type="module">
-    //import * as THREE from "three";
-    import * as THREE from "https://unpkg.com/three@0.155.0/build/three.module.js";
-    //import * as THREE from "https://js13kgames.com/webxr-src/2024/three.module.js";
-    //import * as THREE from "http://127.0.0.1:8081/three.module.js";
-
+    import * as THREE from "https://unpkg.com/three@0.167.0/build/three.module.js"
+    //import * as THREE from "https://js13kgames.com/webxr-src/2024/three.js";
+  
     window.THREE = THREE;
+  </script>
+
+  <script>
+    function showLeaderboard(){
+      const elm = document.getElementById("name");
+      console.log( `Name=${elm.value}`);
+      const gameover = document.getElementById("gameoverPanel");
+      gameover.style.display = "none";
+      const leaderboard = document.getElementById("leaderboardPanel");
+      leaderboard.style.display = "block";
+    }
+    function showGameover(){
+      const gameover = document.getElementById("gameoverPanel");
+      gameover.style.display = "block";
+      const leaderboard = document.getElementById("leaderboardPanel");
+      leaderboard.style.display = "none";
+    }
   </script>
 
     <style>
@@ -44,7 +52,7 @@
         text-align: center;
         background-image: linear-gradient(135deg, #2b2a2a 25%, #3e3d3d 25%, #3e3d3d 50%, #2b2a2a 50%, #2b2a2a 75%, #3e3d3d 75%, #3e3d3d 100%);
         background-size: 50px 50px; /* Simple checkered pattern */
-        padding: 40px 40px;
+        padding: 10px 40px;
         color: #d0b790;
         font-family: 'Times', serif;
         font-size: 30px;
@@ -55,7 +63,7 @@
         color: #a39681;
       }
       table{
-        font-family: 'Arial', san-serif;
+        font-weight: bolder;
         width: 100%;
       }
       table td:first-child{
@@ -83,58 +91,45 @@
           background-color: #a38e6f; /* Lighter on hover */
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.7); /* More pronounced shadow on hover */
       }
+
+      input {
+        margin: 0 0 10px 0;
+        width: 300px;
+        padding: 10px 15px;
+        font-size: 1.2em;
+        background-color: #3e3d3d; /* Dark metal color */
+        color: #d3b784; /* Golden text color */
+        border: 2px solid #5e4b2f; /* Bronze-like border */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: inset 0 0 10px #000000, 0 0 10px #000000; /* Inner shadow for depth */
+        outline: none;
+        transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effects */
+    }
+
+    input:focus {
+        border-color: #a38e6f; /* Lighter bronze color on focus */
+        box-shadow: inset 0 0 15px #5e4b2f, 0 0 15px #000000; /* Enhanced shadow on focus */
+        background-color: #2b2a2a; /* Darker background on focus */
+    }
+
+    .title {
+        font-size: 2em;
+        margin: 0;
+        text-shadow: 3px 3px #5e4b2f; /* Shadow for depth */
+    }
     </style>
-    -->
-  <!--  <style>
-      body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Times New Roman', serif; /* Using default serif font */
-    background-color: #2b2a2a; /* Dark background */
-    color: #d3b784; /* Golden text color */
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-image: linear-gradient(135deg, #2b2a2a 25%, #3e3d3d 25%, #3e3d3d 50%, #2b2a2a 50%, #2b2a2a 75%, #3e3d3d 75%, #3e3d3d 100%);
-    background-size: 50px 50px; /* Simple checkered pattern */
-}
-
-.game-over-screen {
-    border: 5px solid #d3b784; /* Golden border */
-    padding: 50px;
-    background-color: rgba(43, 42, 42, 0.95); /* Semi-transparent dark background */
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.7); /* Shadow for depth */
-    width: 500px;
-    text-align: center;
-}
-
-.game-over-title {
-    font-size: 4em;
-    margin: 0;
-    text-shadow: 3px 3px #5e4b2f; /* Shadow for depth */
-}
-
-.game-over-text {
-    font-size: 1.5em;
-    margin: 20px 0;
-    color: #a38e6f; /* Lighter golden color */
-}
-
-
-    </style>-->
   </head>
   <body>
-    <div id="openingPanel" class="panel" style="display: none;"> 
-      <h1>STEAMSHOT 13</h1>
+    <div id="openingPanel" class="panel" style="display: block;"> 
+      <img id="ballPic" width="100px" height="100px" />
+      <h1 class="title">STEAMSHOT 13</h1>
       <p>Don't let a 13 ball pass. Score points with a green ball hit. Lose points if you hit a red ball. How long can you survive?</p>
       <h3>Instructions</h3>
       <p>Shoot with the trigger<br>
       Press the button below to PLAY</p>
     </div>
-    <div id="gameoverPanel" class="panel" style="display:block">
-      <h1>GAMEOVER</h1>
+    <div id="gameoverPanel" class="panel" style="display:none">
+      <h1 class="title">GAMEOVER</h1>
       <p id="details">
         You let a 13 ball pass
         <table>
@@ -143,9 +138,26 @@
           <tr><td>Total Score</td><td>500</td></tr>
         </table>
       </p>
-      <input type="text" placeholder="Enter your name" >
-      <button class="button">LEADERBOARD</button>
+      <input id="name" type="text" placeholder="Enter your name" >
+      <button class="button" onClick="showLeaderboard()">LEADERBOARD</button>
     </div>
-    <!--<button id="startBtn">Start</button>-->
+    <div id="leaderboardPanel" class="panel" style="display:none">
+      <h1>LEADERBOARD</h1>
+      <p id="leaderboard">
+        <table class="leaderboard">
+          <tr><td>Nik</td><td>500</td></tr>
+          <tr><td>Pam</td><td>400</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+          <tr><td>Sophie</td><td>300</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+          <tr><td>Andrew</td><td>300</td></tr>
+        </table>
+      </p>
+      <button class="button" onClick="showGameover()">BACK</button>
+    </div>
   </body>
 </html>

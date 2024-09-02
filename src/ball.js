@@ -1,7 +1,7 @@
 import { App } from './index.js';
 
 export class Ball{
-    static states = { DROPPING: 1, ROTATE: 2, FIRED: 3, HIT: 4 };
+    static states = { DROPPING: 1, ROTATE: 2, FIRED: 3, HIT: 4, PIC: 5 };
     static canvas = document.createElement('canvas');
     static geometry = new THREE.SphereGeometry( 0.5 );
     static support;
