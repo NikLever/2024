@@ -10,6 +10,7 @@ import { NoiseMaterial } from './NoiseMaterial.js';
 import { Panelling } from './panelling.js';
 import { Ceiling } from './ceiling.js';
 import { MouldGeometry } from './MouldGeometry.js';
+import { Leaderboard } from './leaderboard.js';
 
 class App{
     static states = { INTRO: 1, GAME: 2, OVER: 3 }
@@ -62,6 +63,8 @@ class App{
         this.tmpVec = new THREE.Vector3();
         this.raycaster = new THREE.Raycaster();
 
+        this.leaderboard = new Leaderboard();
+
         this.setupVR();
 
         this.SFX = new SFX();
@@ -92,13 +95,29 @@ class App{
         const panel = document.getElementById('gameoverPanel');
         const details = document.getElementById('details');
 
+        let html;
 
         if (dead){
-            details.innerHTML = `<P>You let a Ball 13 get passed you.</p><P>Score: ${this.score}</P><P>Time: ${this.timeCounter.time}</P>`;
+            html = `<P>You let a Ball 13 get passed you.<table>`;
         }else{
-            details.innerHTML = `<P>You quit the game</P><P>Score: ${this.score}</P><P>Time: ${this.timeCounter.time}</P>`;
+            html = `<P>You quit the game<table>`;
         }
+
+        const totalScore = this.score + this.timeCounter.seconds;
+
+        html = `${html}<tr><td>Hit score</td><td>${this.score}</td></tr>`;
+        html = `${html}<tr><td>Time</td><td>${this.timeCounter.time}</td></tr>`;
+        html = `${html}<tr><td>Total Score</td><td>${totalScore}</td></tr></table></p>`;
+
+        details.innerHTML = html;
+
         panel.style.display = 'block';
+
+        const elm = document.getElementById("name");
+        if (elm.value != ""){
+            this.leaderboard.write( { name: elm.value, score: totalScore });
+            this.updateLeaderboard();
+        }
 
         let count = 0;
 
@@ -439,7 +458,7 @@ class App{
 
             this.camera.aspect = 1;
             this.camera.updateProjectionMatrix();
-            this.renderer.setSize( 100, 100 );
+            this.renderer.setSize( 128, 128 );
 
             this.renderer.render( this.scene, this.camera );
             const elm = document.getElementById( "ballPic" );
@@ -463,4 +482,10 @@ class App{
 
 export { App };
 
-window.app = new App();  
+const app = new App();  
+window.app = app;
+
+const elm = document.getElementById("name");
+elm.addEventListener( "change", () => {
+    app.leaderboard.write( { name: elm.value, score: app.score + app.timeCounter.seconds });
+});

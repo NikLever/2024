@@ -188,6 +188,10 @@ export class Counter extends THREE.Group{
         this.update( 0 );
     }
 
+    get seconds(){
+        return this.targetValue;
+    }
+
     get time(){
         let secs = this.targetValue;
         let mins = Math.floor( secs/60 );
