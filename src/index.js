@@ -116,7 +116,7 @@ class App{
         const elm = document.getElementById("name");
         if (elm.value != ""){
             this.leaderboard.write( { name: elm.value, score: totalScore });
-            this.updateLeaderboard();
+            //this.updateLeaderboard();
         }
 
         let count = 0;
