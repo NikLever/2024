@@ -13,7 +13,7 @@ import { MouldGeometry } from './MouldGeometry.js';
 import { Leaderboard } from './leaderboard.js';
 
 class App{
-    static states = { INTRO: 1, GAME: 2, OVER: 3 }
+    static states = { INTRO: 1, GAME: 2, OVER: 3, NEWLEVEL: 4 }
     static woodMat = new NoiseMaterial( 'wood', { roughness: 0.3 } );
     static darkWoodMat = new NoiseMaterial( 'darkwood', { roughness: 0.3 } ); 
     static oakMat = new NoiseMaterial( 'oak', { roughness: 0.3 } ); 
@@ -79,6 +79,10 @@ class App{
         this.gameTime = 0;
         this.ballTime = 2.5;
         this.ballCount = 0;
+        this.hitCount = 0;
+        this.levelHitCount = 6;
+        this.ball13Count = 10;
+        this.levelNum = 2;
         this.startTime = this.clock.elapsedTime;
         this.newBallTime = 3;
         this.balls = [];
@@ -87,7 +91,7 @@ class App{
         this.timerTime = 0;
         this.timeCounter.seconds = 0;
         const panel = document.getElementById('openingPanel');
-        panel.style.display = 'none';
+        panel.style.top = '-50%';
         this.SFX.heart();
     }
 
@@ -111,7 +115,7 @@ class App{
 
         details.innerHTML = html;
 
-        panel.style.display = 'block';
+        window.showGameover();
 
         const elm = document.getElementById("name");
         if (elm.value != ""){
@@ -229,8 +233,6 @@ class App{
         this.timeCounter = new Counter( this.scene, new THREE.Vector3( 3.9, 4.5, -19.8 ) );
         
        // this.test = new Gun();
-        //this.test.position.set( 0, 1.5, -0.5 );
-        //this.scene.add( this.test );
 
 		this.scene.background = new THREE.Color( 0x202020 );
 		//this.scene.fog = new THREE.Fog( 0x0a0a0a, 20, 50 );
@@ -326,11 +328,24 @@ class App{
         }
     }
 
-    updateScore( num ){
+    updateScore( num,  levelUpdate=false){
+        if (levelUpdate){
+            this.hitCount++;
+            if (this.hitCount >= this.levelHitCount){
+                this.levelNum++;
+                this.levelHitCount++;
+                this.hitCount = 0;
+                this.score += 100;
+                if (this.ball13Count>5) this.ball13Count--;
+            }
+        }
+
         this.score += num;
         if (this.score < 0) this.score = 0;
         this.scoreCounter.score = this.score;
-        console.log(`Update score ${num} ${this.score}`);
+
+        
+        //console.log(`Update score ${num} ${this.score}`);
     }
 
     removeBall( ball, gameOver = false ){
@@ -379,7 +394,8 @@ class App{
         const scores = [ 10, 50, 250 ];
         const leftSide = Math.random()>0.5;
 
-        if ( rand > 0.9 && xPos < 3){
+        if ( this.ballCount % this.ball13Count == 0){
+            if (xPos > 3) xPos = 3;
             num = 13;
         }else{
             let index = (xPos-1)/2;
@@ -388,7 +404,13 @@ class App{
 
         if (leftSide) xPos *= -1;
 
-        return new Ball( this.scene, num, minus, xPos, speed )
+        if ( num==13 ){
+            this.SFX.piano();
+        }else{
+            this.SFX.drum();
+        }
+
+        return new Ball( this.scene, num, minus, xPos, speed, this.levelNum )
     }
 
     capture(){
@@ -471,10 +493,14 @@ class App{
             this.resize();
         }
 
-        if ( this.test ){
+        /*if ( this.test == undefined){
+            this.test = Ball.support2.clone();
+            this.test.position.set( 0, 0, -3 );
+            this.scene.add( this.test );
+        }else{
             this.test.rotateY( dt );
             //this.test.update();
-        }
+        }*/
 
         this.renderer.render( this.scene, this.camera );
     }
@@ -482,10 +508,17 @@ class App{
 
 export { App };
 
-const app = new App();  
-window.app = app;
+document.addEventListener( 'DOMContentLoaded', () => {
+    const app = new App();  
+    window.app = app;
 
-const elm = document.getElementById("name");
-elm.addEventListener( "change", () => {
-    app.leaderboard.write( { name: elm.value, score: app.score + app.timeCounter.seconds });
+    const elm = document.getElementById("name");
+    elm.addEventListener( "change", () => {
+        app.leaderboard.write( { name: elm.value, score: app.score + app.timeCounter.seconds });
+    });
+
+    setTimeout( () => {
+        const opening = document.getElementById("openingPanel");
+        opening.style.top = "50%";
+    }, 1000);
 });

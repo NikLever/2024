@@ -1,12 +1,26 @@
 import { App } from './index.js';
 
+class ElbowCurve extends THREE.Curve{
+    constructor( radius ){
+        super();
+
+        this.radius = radius;
+    }
+
+    getPoint( t ){
+        const theta = t * Math.PI/2;
+
+        return new THREE.Vector3( Math.cos( theta ), Math.sin( theta ) ).multiplyScalar( this.radius );
+    }
+}
+
 export class Ball{
     static states = { DROPPING: 1, ROTATE: 2, FIRED: 3, HIT: 4, PIC: 5 };
     static canvas = document.createElement('canvas');
     static geometry = new THREE.SphereGeometry( 0.5 );
     static support;
     
-    constructor( scene, num, minus = false, xPos = -1, speed = 0.1 ){
+    constructor( scene, num, minus = false, xPos = -1, speed = 0.1, levelNum = 1 ){
         if (Ball.canvas.width != 256 ){
 		    Ball.canvas.width = 256;
             Ball.canvas.height = 128;
@@ -18,6 +32,34 @@ export class Ball{
             Ball.support = new THREE.Mesh( geo1, App.darkMetalMat );
             Ball.support.rotateX( Math.PI/2 );
             Ball.support.castShadow = true;
+
+            const geo2 = new THREE.TubeGeometry( new ElbowCurve( 0.04 ), 9, 0.04, 10, false );
+            const elbow = new THREE.Mesh( geo2, App.metalMat );
+            const geo3 = new THREE.CylinderGeometry( 0.04, 0.04, 0.9, 10, 1, true );
+            geo3.translate( 0, 0.35, 0 );
+            const upright = new THREE.Mesh( geo3, App.darkMetalMat );
+            const geo4 = new THREE.CylinderGeometry( 0.04, 0.04, 0.4, 10, 1, true );
+            geo4.rotateX( Math.PI/2 );
+            geo4.translate( 0, 0, 0.2 );
+            const horz = new THREE.Mesh( geo4, App.darkMetalMat );
+            horz.position.set( 0, 0.84, 0.04);
+            const elbow2 = elbow.clone();
+            elbow.position.set( 0, 0.8, 0.04 );
+            elbow.rotateY( Math.PI/2 );
+            elbow2.position.set( 0, 0.88, 0.44 );
+            elbow2.rotateY( Math.PI/2 );
+            elbow2.rotateZ( Math.PI );
+            const geo5 = new THREE.CylinderGeometry( 0.04, 0.04, 0.2, 10, 1, false );
+            geo5.translate( 0, -0.1, 0 );
+            const upright2 = new THREE.Mesh( geo5, App.darkMetalMat );
+            upright2.position.set( 0, 1.08, 0.48 );
+
+            Ball.support2 = new THREE.Group();
+            Ball.support2.add( upright );
+            Ball.support2.add( upright2 );
+            Ball.support2.add( horz );
+            Ball.support2.add( elbow );
+            Ball.support2.add( elbow2 );
         }
 
         const context = Ball.canvas.getContext('2d');
@@ -35,6 +77,7 @@ export class Ball{
 
         this.num = num; 
         this.speed = speed * 60;
+        this.time = 0;
 
         context.fillRect(0, 0, 256, 128);
 
@@ -55,8 +98,17 @@ export class Ball{
         this.mesh.position.set( xPos, 4, -20.6 );
         this.mesh.rotateY( Math.PI/2 );
 
-        this.support = Ball.support.clone();
+        this.levelNum = levelNum;
+        this.tmpVec = new THREE.Vector3();
+
+        if ( levelNum < 3 ){
+            this.support = Ball.support.clone();
+        }else{
+            this.support = Ball.support2.clone();
+            this.support.position.z = -21.2;
+        }
         this.support.position.x = xPos;
+        
         scene.add( this.support );
 
         this.state = Ball.states.DROPPING;
@@ -69,7 +121,7 @@ export class Ball{
     hit( game ){
         console.log( "Ball hit" );
         this.game = game;
-        game.updateScore( this.num );
+        game.updateScore( this.num, true );
         game.SFX.hit();
 
         this.scene.remove( this.mesh );
@@ -117,8 +169,28 @@ export class Ball{
                 }
                 break;
             case Ball.states.FIRED:
-                this.mesh.position.z += this.speed * dt;
-                this.support.position.z = this.mesh.position.z;
+                this.time += dt;
+                switch( this.levelNum ){
+                    case 1:
+                        this.mesh.position.z += this.speed * dt;
+                        this.support.position.z = this.mesh.position.z;
+                        break;
+                    case 2:
+                        this.mesh.position.z += this.speed * dt;
+                        this.support.position.z = this.mesh.position.z;
+                        this.mesh.position.y = (Math.cos( this.time * 2.0 ) - 1.0) * 0.4 + 1.6; 
+                        this.support.position.y = this.mesh.position.y - 1.6;
+                        break;
+                    default: 
+                        this.support.rotateY(dt*3);
+                        this.support.position.z += this.speed * dt;
+                        this.support.children[4].getWorldPosition( this.tmpVec );
+                        this.tmpVec.y += 0.7;//this.mesh.position.y
+                        this.mesh.position.copy( this.tmpVec );
+                        break;
+                    }
+
+                    if (this.levelNum>3) this.support.position.y = (Math.cos( this.time * 3.0 ) - 1.0) * 0.4 + 0.1;    
                 break;
             case Ball.states.HIT:
                 this.particles.forEach( particle => { particle.update( this, dt ) })
