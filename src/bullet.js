@@ -1,28 +1,38 @@
 import { Ball } from "./ball.js";
 
-export class Bullet{
+export class Bullet extends THREE.Group{
     constructor( game, controller ){
+        super();
+
         const geo1 = new THREE.CylinderGeometry( 0.008, 0.008, 0.07, 16 );
         geo1.rotateX( -Math.PI/2 );
         const material = new THREE.MeshBasicMaterial( { color: 0xFFAA00  });
         const mesh = new THREE.Mesh( geo1, material );
 
+        const geo2 = new THREE.CylinderGeometry( 0.008, 0.008, 0.7, 16 );
+        geo2.rotateX( -Math.PI/2 );
+        const material2 = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, opacity: 0.6, transparent: true  });
+        const mesh2 = new THREE.Mesh( geo2, material2 );
+
+        this.add(mesh);
+        this.add(mesh2);
+
         const v = new THREE.Vector3();
         const q = new THREE.Quaternion();
 
-        mesh.position.copy( controller.getWorldPosition( v ) );
-        mesh.quaternion.copy( controller.getWorldQuaternion( q ) );
+        this.position.copy( controller.getWorldPosition( v ) );
+        this.quaternion.copy( controller.getWorldQuaternion( q ) );
 
-        game.scene.add( mesh );
-        this.tmpVec = new THREE.Vector3();
+        game.scene.add( this );
+
+        this.tmpVec = v;
         this.tmpVec2 = new THREE.Vector3();
-
-        this.mesh = mesh;
+        
         this.game = game;
     }
 
     update( dt ){
-        let dist = dt * 15;
+        let dist = dt * 25;
         let count = 0;
 
         while(count<1000){
@@ -30,13 +40,13 @@ export class Bullet{
             count++;
             if (dist > 0.5){
                 dist -= 0.5;
-                this.mesh.translateZ( -0.5 );
+                this.translateZ( -0.5 );
             }else{
-                this.mesh.translateZ( -dist );
+                this.translateZ( -dist );
                 dist = 0;
             }
 
-            this.mesh.getWorldPosition( this.tmpVec );
+            this.getWorldPosition( this.tmpVec );
 
             let hit = false;
 
@@ -57,8 +67,6 @@ export class Bullet{
             if (dist==0 || hit) break;
         }
 
-        this.mesh.translateZ( dt * -2 );
-
-        if ( this.mesh.position.length() > 20 ) this.game.removeBullet();
+        if ( this.position.length() > 20 ) this.game.removeBullet();
     }
 }

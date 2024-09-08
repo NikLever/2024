@@ -42,7 +42,7 @@ class App{
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
         this.renderer.shadowMap.enabled = true;
 
-        const light = new THREE.DirectionalLight(0xFFFFFF, 3);
+        const light = new THREE.DirectionalLight(0xFFFFFF, 2);
         light.castShadow = true;
         light.shadow.mapSize.width = 512; // default
         light.shadow.mapSize.height = 512; // default
@@ -82,7 +82,7 @@ class App{
         this.hitCount = 0;
         this.levelHitCount = 6;
         this.ball13Count = 10;
-        this.levelNum = 2;
+        this.levelNum = 1;
         this.startTime = this.clock.elapsedTime;
         this.newBallTime = 3;
         this.balls = [];
@@ -96,6 +96,7 @@ class App{
     }
 
     gameOver(dead = true){
+        //return;
         const panel = document.getElementById('gameoverPanel');
         const details = document.getElementById('details');
 
@@ -171,6 +172,7 @@ class App{
         panellingRight.rotateY( Math.PI );
         panellingRight.position.x = 7;
         this.scene.add( panellingRight );
+        this.panels = [ panellingLeft, panellingRight ];
 
         const ceiling = new Ceiling();
         ceiling.position.y = 6.3;
@@ -356,23 +358,25 @@ class App{
             this.scene.remove( ball.mesh );
             this.scene.remove( ball.support );
             this.balls.splice( index, 1 );
-            if (gameOver) this.gameOver( true );
         }
+        if (gameOver) this.gameOver( true );
     }
 
     removeBullet( bullet ){
         const index = this.bullets.indexOf( bullet );
         if (index != -1){
-            this.scene.remove( bullet.mesh );
+            this.scene.remove( bullet );
             this.bullets.splice( index, 1 );
         }
     }
 
     newBall(){
-        this.ballTime = 0;
         this.ballCount++;
 
-        const speed = Math.min(0.05 + 0.01 * this.ballCount, 0.3);
+        const speed = Math.min( 0.05 + 0.01 * this.ballCount, 0.2 );
+
+        let count = 0;
+
         let xPos = 1;
 
         if ( this.ballCount > 50 ){
@@ -386,7 +390,7 @@ class App{
             if (Math.random()>0.5) xPos += 2;
         }
 
-        if (this.newBallTime>0.6) this.newBallTime -= 0.05;
+        if (this.newBallTime>0.5) this.newBallTime -= 0.05;
         const rand = Math.random();
 
         let num;
@@ -403,6 +407,19 @@ class App{
         }
 
         if (leftSide) xPos *= -1;
+        
+        const balls = this.balls.filter(  ball => {
+            if (ball.state == Ball.states.FIRED) return false;
+            const offset = ball.mesh.position.x - xPos;
+            return offset * offset < 0.5;
+        });
+
+        if (balls.length > 0){
+            this.ballCount--;
+            return;
+        }
+
+        this.ballTime = 0;
 
         if ( num==13 ){
             this.SFX.piano();
@@ -439,7 +456,8 @@ class App{
             }
 
             if (this.ballTime > this.newBallTime){
-                this.balls.push( this.newBall() );
+                const ball = this.newBall();
+                if (ball) this.balls.push( ball );
             }
 
             if ( this.balls && this.balls.length > 0 ){
@@ -460,6 +478,27 @@ class App{
         }
        
         if (this.scene.environment == null){
+            const panelling = new Panelling( 1.5, 1.5, true );
+            panelling.position.set( 0.12, 1.34, -1 );
+            this.scene.add( panelling );
+
+            const renderTarget = new THREE.WebGLRenderTarget(128, 128, {
+                generateMipmaps: true, 
+                wrapS: THREE.RepeatWrapping,
+                wrapT: THREE.RepeatWrapping,
+                minFilter: THREE.LinearMipmapLinearFilter
+            });
+            this.camera.aspect = 1.2;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setRenderTarget( renderTarget );
+            this.renderer.render( this.scene, this.camera );
+            
+            const map = renderTarget.texture;
+            map.repeat.set( 30, 6 );
+            this.panels[0].panelling.material.map = map;
+            this.panels[1].panelling.material.map = map;
+            this.scene.remove( panelling );
+
             this.renderTarget = new THREE.WebGLRenderTarget(1024, 512);
             this.renderer.setSize( 1024, 512 );
             this.renderer.setRenderTarget( this.renderTarget );

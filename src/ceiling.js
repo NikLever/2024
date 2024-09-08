@@ -62,7 +62,7 @@ class RoundedRectCurve extends THREE.Curve{
   }
 
 export class Ceiling extends THREE.Group{
-    constructor( width = 14, depth = 30 ){
+    constructor( width = 14, depth = 25 ){
         super();
 
         const block = this.createBlock( width/2, 4 );

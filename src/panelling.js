@@ -3,7 +3,7 @@ import { App } from './index.js';
 import { MouldGeometry } from "./MouldGeometry.js";
 
 export class Panelling extends THREE.Group{
-    constructor( width = 30, height = 6.3 ){
+    constructor( width = 30, height = 6.3, texture ){
         super();
 
         this.material = App.darkWoodMat;
@@ -24,32 +24,44 @@ export class Panelling extends THREE.Group{
         //const bb = new THREE.Mesh( new THREE.BoxGeometry( this.config.width, this.config.height, 0.02 ), new THREE.MeshBasicMaterial( { color: 0xFFFFFF, wireframe: true } ) );
         //this.add( bb );
 
-        const vertical = this.createVertical();
-        const horizontal = this.createHorizontal();
-        const panel = this.createPanel();
         const skirting = this.createSkirting();
         const cornice = this.createCornice();
 
-        for( let x=(this.config.timberWidth-this.config.width)/2; x<(this.config.width)/2; x+=this.config.repeatWidth ){
-            const vert = vertical.clone();
-            vert.position.set( x, (this.config.skirtingHeight - this.config.corniceHeight)/2, 0);
-            this.add( vert );
-            for (let y = (this.config.timberWidth-this.config.height)/2 + this.config.skirtingHeight; y<(this.config.height/2 - this.config.corniceHeight); y+=this.config.panelHeight + this.config.timberWidth ){
-                const horz = horizontal.clone();
-                horz.position.set( x + this.config.timberWidth/2 + this.config.panelWidth/2, y, 0);
-                this.add( horz );
-                const pnl = panel.clone();
-                pnl.position.set( x + (this.config.timberWidth + this.config.panelWidth)/2, y + ( this.config.timberWidth + this.config.panelHeight)/2, -0.01  );
-                this.add( pnl );
-                console.log(y);
-            }
-        } 
+        if ( texture ){
+            const panelling = new THREE.Group();
+
+            const vertical = this.createVertical();
+            const horizontal = this.createHorizontal();
+            const panel = this.createPanel();
+
+            for( let x=(this.config.timberWidth-this.config.width)/2; x<(this.config.width)/2; x+=this.config.repeatWidth ){
+                const vert = vertical.clone();
+                vert.position.set( x, (this.config.skirtingHeight - this.config.corniceHeight)/2, 0);
+                panelling.add( vert );
+                for (let y = (this.config.timberWidth-this.config.height)/2 + this.config.skirtingHeight; y<(this.config.height/2 - this.config.corniceHeight); y+=this.config.panelHeight + this.config.timberWidth ){
+                    const horz = horizontal.clone();
+                    horz.position.set( x + this.config.timberWidth/2 + this.config.panelWidth/2, y, 0);
+                    panelling.add( horz );
+                    const pnl = panel.clone();
+                    pnl.position.set( x + (this.config.timberWidth + this.config.panelWidth)/2, y + ( this.config.timberWidth + this.config.panelHeight)/2, -0.01  );
+                    panelling.add( pnl );
+                    console.log(y);
+                }
+            } 
+
+            this.add( panelling );
+        }else{
+            const geo = new THREE.PlaneGeometry( this.config.width, this.config.height );
+            const mat = new THREE.MeshStandardMaterial( { roughness: 0.5, metalness: 0 } );
+            this.panelling = new THREE.Mesh( geo, mat );
+            this.add( this.panelling );
+        }
 
         skirting.position.set( this.config.width/2, (this.config.skirtingHeight-this.config.height)/2, 0.01 );
-        this.add( skirting );
+        if ( !texture ) this.add( skirting );
 
         cornice.position.set( 0, (this.config.height - this.config.corniceHeight)/2, this.config.corniceHeight/2 );
-        this.add( cornice );
+        if ( !texture ) this.add( cornice );
     }
 
     createPanel(){

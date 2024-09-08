@@ -204,13 +204,13 @@ class VRButton{
         if (!ignorePadding) element.style.padding = '12px 6px';
         element.style.border = '1px solid #fff';
         element.style.borderRadius = '4px';
-        element.style.background = (active) ? 'rgba(20,150,80,1)' : 'rgba(180,20,20,1)';
+        element.style.background = (active) ? 'rgba(118, 89, 42, 1)' : 'rgba(143, 99, 29, 1)';
         element.style.color = '#fff';
         element.style.font = `normal ${fontSize}px sans-serif`;
         element.style.textAlign = 'center';
         element.style.opacity = '0.5';
         element.style.outline = 'none';
-        element.style.zIndex = '999';
+        element.style.zIndex = '1001';
 
     }
 };

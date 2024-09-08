@@ -103,6 +103,7 @@ export class Ball{
 
         if ( levelNum < 3 ){
             this.support = Ball.support.clone();
+            this.support.position.z = -20.6;
         }else{
             this.support = Ball.support2.clone();
             this.support.position.z = -21.2;
@@ -125,6 +126,7 @@ export class Ball{
         game.SFX.hit();
 
         this.scene.remove( this.mesh );
+        this.scene.remove( this.support );
         this.state = Ball.states.HIT;
         
         this.group = new THREE.Group();
@@ -199,9 +201,7 @@ export class Ball{
 
         if (this.mesh.position.z > 2){
             this.mesh.material.map.dispose();
-            if (game){
-                game.removeBall( this, this.num==13 );
-            } 
+            if (game) game.removeBall( this, this.num==13 );
         }
     }
 }
